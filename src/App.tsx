@@ -4,7 +4,6 @@ import {
     extractNodesAndWays,
     extractSegmentsAndPoints,
 } from "./util/parser.ts";
-import { LatLng, LatLngTuple } from "leaflet";
 import { Graph, Node, NodeMap } from "./util/types.ts";
 import * as turf from "@turf/turf";
 import { Feature, FeatureCollection, Point } from "geojson";
@@ -16,22 +15,28 @@ import Nodes from "./components/Nodes.tsx";
 import useGraph from "./util/useGraph.ts";
 import ConnectedNodes from "./components/ConnectedNodes.tsx";
 import FullPath from "./components/FullPath.tsx";
+import Controls from "./components/Controls.tsx";
+import { useSelector } from "react-redux";
+import { RootState } from "./util/store/store.ts";
 
 function App() {
     console.log("render");
-    const [appState, setAppState] = useState<
-        "areaSelection" | "startSelection" | "pathSelection"
-    >("areaSelection");
-    const [startingPosition, setStartingPosition] =
-        useState<LatLngTuple | null>(null);
-    const [startingNode, setStartingNode] = useState<number | null>(null);
+
     const [connectedNodes, setConnectedNodes] = useState<number[] | null>(null);
-    const [areaRadius, setAreaRadius] = useState<number>(1000);
     const [selectedPointsFull, setSelectedPointsFull] = useState<number[][]>(
         []
     );
-
-    const { data, error } = useFetch(startingPosition, areaRadius, appState);
+    const controlState = useSelector(
+        (state: RootState) => state.controls.controlState
+    );
+    const areaPosition = useSelector((state: RootState) => state.mapData.areaPosition)
+    const startNode = useSelector((state: RootState) => state.mapData.startNode);
+    const areaRadius = useSelector((state: RootState) => state.mapData.areaRadius);
+    const { data, error } = useFetch(
+        areaPosition,
+        areaRadius,
+        controlState
+    );
     const { graph, buildGraph, findConnectedMarkers, findPathAstar } =
         useGraph();
 
@@ -68,24 +73,24 @@ function App() {
             getRandomPointFromQuadrant(quadrants.bottomLeft),
         ];
 
-        if (startingNode && connectedNodes) {
+        if (startNode && connectedNodes) {
             const nodePosition = determineNodePosition(
-                nodes[startingNode],
+                nodes[startNode],
                 centerOfMass
             );
 
             switch (nodePosition) {
                 case "topLeft":
-                    mainPathPoints[0] = getNodeCoordinates(startingNode);
+                    mainPathPoints[0] = getNodeCoordinates(startNode);
                     break;
                 case "topRight":
-                    mainPathPoints[1] = getNodeCoordinates(startingNode);
+                    mainPathPoints[1] = getNodeCoordinates(startNode);
                     break;
                 case "bottomLeft":
-                    mainPathPoints[3] = getNodeCoordinates(startingNode);
+                    mainPathPoints[3] = getNodeCoordinates(startNode);
                     break;
                 case "bottomRight":
-                    mainPathPoints[2] = getNodeCoordinates(startingNode);
+                    mainPathPoints[2] = getNodeCoordinates(startNode);
                     break;
             }
         }
@@ -104,8 +109,8 @@ function App() {
                 ? "topLeft"
                 : "topRight"
             : isLeft
-            ? "bottomLeft"
-            : "bottomRight";
+                ? "bottomLeft"
+                : "bottomRight";
     }
 
     function getNodeCoordinates(nodeId: number): number[] {
@@ -193,18 +198,6 @@ function App() {
         return quadrant[randomIndex];
     }
 
-    const updateStartingPosition = (position: LatLng) => {
-        setStartingPosition([position.lat, position.lng]);
-    };
-
-    const updateStartingNode = (nodeId: number) => {
-        setStartingNode(nodeId);
-    };
-
-    const changeAreaRadius = (e: any) => {
-        setAreaRadius(e.target.value);
-    };
-
     return (
         <div className="w-full h-full grid grid-cols-5">
             {error && (
@@ -218,90 +211,17 @@ function App() {
                     <h1 className=" font-extrabold text-4xl">LOGO</h1>
                     <p>Randomize your daily steps</p>
                 </div>
-                <div className="flex flex-col items-center justify-center row-span-8">
-                    {appState === "areaSelection" && (
-                        <>
-                            <label
-                                htmlFor="default-range"
-                                className="block mb-2 text-sm font-medium text-gray-900"
-                            >
-                                Area Radius
-                            </label>
-                            <input
-                                id="default-range"
-                                type="range"
-                                min={500}
-                                max={2000}
-                                defaultValue={1000}
-                                onChange={changeAreaRadius}
-                                step="10"
-                                className=" w-9/12 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
-                            />
-                            <button
-                                className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
-                                onClick={() => {
-                                    if (startingPosition === null) return;
-                                    setAppState("startSelection");
-                                }}
-                            >
-                                Load paths
-                            </button>
-                        </>
-                    )}
-                    {appState === "startSelection" && (
-                        <>
-                            <div>
-                                <input
-                                    type="checkbox"
-                                    id="startingNode"
-                                    name="startingNode"
-                                    checked={startingNode !== null}
-                                    disabled
-                                />
-                                <label className="ml-2" htmlFor="startingNode">
-                                    Select a starting node
-                                </label>
-                            </div>
-                            <button
-                                className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
-                                disabled={startingNode === null}
-                                onClick={() => {
-                                    if (startingNode === null) return;
-                                    const newGraph = buildGraph(segments);
-                                    setConnectedNodes(
-                                        findConnectedMarkers(
-                                            startingNode,
-                                            newGraph
-                                        )
-                                    );
-                                    setAppState("pathSelection");
-                                }}
-                            >
-                                build graph
-                            </button>
-                        </>
-                    )}
-                    {appState === "pathSelection" && (
-                        <>
-                            <button
-                                className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
-                                onClick={() => {
-                                    setSelectedPoints(generateMainPathPoints());
-                                }}
-                            >
-                                Generate path
-                            </button>
-                            <button
-                                className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
-                                onClick={() => {
-                                    setSelectedPointsFull(generateRandomPath());
-                                }}
-                            >
-                                Show path
-                            </button>
-                        </>
-                    )}
-                </div>
+                <Controls
+                    buildGraph={buildGraph}
+                    setConnectedNodes={setConnectedNodes}
+                    findConnectedMarkers={findConnectedMarkers}
+                    segments={segments}
+                    setSelectedPoints={setSelectedPoints}
+                    generateMainPathPoints={generateMainPathPoints}
+                    setSelectedPointsFull={setSelectedPointsFull}
+                    generateRandomPath={generateRandomPath}
+                />
+
                 <div className="flex flex-1 items-center justify-center row-span-1">
                     Footer
                 </div>
@@ -323,16 +243,13 @@ function App() {
                     />
                     <AreaMarker
                         startingPosition={null}
-                        radius={areaRadius}
-                        setStartingPosition={updateStartingPosition}
-                        active={appState === "areaSelection"}
+                        active={controlState === "areaSelection"}
                     />
                     {<Segments segments={segments} points={nodes} />}
                     {!graph && (
                         <Nodes
                             segments={segments}
                             nodes={nodes}
-                            setStartingNode={updateStartingNode}
                         />
                     )}
                     <ConnectedNodes
