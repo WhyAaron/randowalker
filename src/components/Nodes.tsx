@@ -23,10 +23,7 @@ const Nodes: React.FC<NodesProps> = ({ segments, nodes }) => {
         const startNode = nodes[segment.nodes[0]];
         const endNode = nodes[segment.nodes[segment.nodes.length - 1]];
         segmentNodes[segment.nodes[0]] = [startNode.lat, startNode.lon];
-        segmentNodes[segment.nodes[segment.nodes.length - 1]] = [
-            endNode.lat,
-            endNode.lon,
-        ];
+        segmentNodes[segment.nodes[segment.nodes.length - 1]] = [endNode.lat, endNode.lon];
     });
 
     const eventHandler = {
@@ -45,9 +42,7 @@ const Nodes: React.FC<NodesProps> = ({ segments, nodes }) => {
                     key={nodeId}
                     center={latLng}
                     radius={10}
-                    pathOptions={
-                        activeNode === nodeId ? { color: "green" } : { color: "red" }
-                    }
+                    pathOptions={activeNode === nodeId ? { color: "green" } : { color: "red" }}
                     eventHandlers={eventHandler}
                 />
             ))}

@@ -2,10 +2,7 @@ import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../util/store/store";
 import { useDispatch } from "react-redux";
 import { setAreaRadius } from "../util/store/mapDataSlice";
-import {
-    setPathSelection,
-    setStartSelection,
-} from "../util/store/controlSlice";
+import { setPathSelection, setStartSelection } from "../util/store/controlSlice";
 import { WayMap } from "../util/types";
 
 interface ControlsProps {
@@ -27,26 +24,28 @@ export default function Controls({
     setSelectedPoints,
     generateMainPathPoints,
     setSelectedPointsFull,
-    generateRandomPath
+    generateRandomPath,
 }: ControlsProps) {
-    const controlState = useSelector(
-        (state: RootState) => state.controls.controlState
-    );
+    const controlState = useSelector((state: RootState) => state.controls.controlState);
 
     const stateComponents = {
         areaSelection: <AreaSelection />,
-        startSelection: <StartSelection
-            setConnectedNodes={setConnectedNodes}
-            buildGraph={buildGraph}
-            findConnectedMarkers={findConnectedMarkers}
-            segments={segments}
-        />,
-        pathSelection: <PathSelection
-            setSelectedPoints={setSelectedPoints}
-            generateMainPathPoints={generateMainPathPoints}
-            setSelectedPointsFull={setSelectedPointsFull}
-            generateRandomPath={generateRandomPath}
-        />,
+        startSelection: (
+            <StartSelection
+                setConnectedNodes={setConnectedNodes}
+                buildGraph={buildGraph}
+                findConnectedMarkers={findConnectedMarkers}
+                segments={segments}
+            />
+        ),
+        pathSelection: (
+            <PathSelection
+                setSelectedPoints={setSelectedPoints}
+                generateMainPathPoints={generateMainPathPoints}
+                setSelectedPointsFull={setSelectedPointsFull}
+                generateRandomPath={generateRandomPath}
+            />
+        ),
     };
 
     return (
@@ -57,20 +56,13 @@ export default function Controls({
 }
 
 function AreaSelection() {
-    const areaRadius = useSelector(
-        (state: RootState) => state.mapData.areaRadius
-    );
-    const areaPosition = useSelector(
-        (state: RootState) => state.mapData.areaPosition
-    );
+    const areaRadius = useSelector((state: RootState) => state.mapData.areaRadius);
+    const areaPosition = useSelector((state: RootState) => state.mapData.areaPosition);
     const dispatch = useDispatch<AppDispatch>();
 
     return (
         <>
-            <label
-                htmlFor="default-range"
-                className="block mb-2 text-sm font-medium text-gray-900"
-            >
+            <label htmlFor="default-range" className="block mb-2 text-sm font-medium text-gray-900">
                 Area Radius
             </label>
             <input
@@ -79,11 +71,7 @@ function AreaSelection() {
                 min={500}
                 max={2000}
                 defaultValue={1000}
-                onChange={(value) =>
-                    dispatch(
-                        setAreaRadius(parseInt(value.target.value))
-                    )
-                }
+                onChange={(value) => dispatch(setAreaRadius(parseInt(value.target.value)))}
                 step="10"
                 className=" w-9/12 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
             />
@@ -107,10 +95,13 @@ interface StartSelectionProps {
     segments: WayMap;
 }
 
-function StartSelection({ setConnectedNodes, buildGraph, findConnectedMarkers, segments }: StartSelectionProps) {
-    const startingNode = useSelector(
-        (state: RootState) => state.mapData.startNode
-    );
+function StartSelection({
+    setConnectedNodes,
+    buildGraph,
+    findConnectedMarkers,
+    segments,
+}: StartSelectionProps) {
+    const startingNode = useSelector((state: RootState) => state.mapData.startNode);
     const dispatch = useDispatch<AppDispatch>();
 
     return (
@@ -133,9 +124,7 @@ function StartSelection({ setConnectedNodes, buildGraph, findConnectedMarkers, s
                 onClick={() => {
                     if (startingNode === null) return;
                     const newGraph = buildGraph(segments);
-                    setConnectedNodes(
-                        findConnectedMarkers(startingNode, newGraph)
-                    );
+                    setConnectedNodes(findConnectedMarkers(startingNode, newGraph));
                     dispatch(setPathSelection());
                 }}
             >
@@ -150,19 +139,20 @@ interface PathSelectionProps {
     generateMainPathPoints: () => any;
     setSelectedPointsFull: (points: any) => void;
     generateRandomPath: () => any;
-
 }
 
-function PathSelection({ setSelectedPoints, generateMainPathPoints, setSelectedPointsFull, generateRandomPath }: PathSelectionProps) {
-
+function PathSelection({
+    setSelectedPoints,
+    generateMainPathPoints,
+    setSelectedPointsFull,
+    generateRandomPath,
+}: PathSelectionProps) {
     return (
         <>
             <button
                 className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
                 onClick={() => {
-                    setSelectedPoints(
-                        generateMainPathPoints()
-                    );
+                    setSelectedPoints(generateMainPathPoints());
                 }}
             >
                 Generate path
@@ -170,9 +160,7 @@ function PathSelection({ setSelectedPoints, generateMainPathPoints, setSelectedP
             <button
                 className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
                 onClick={() => {
-                    setSelectedPointsFull(
-                        generateRandomPath()
-                    );
+                    setSelectedPointsFull(generateRandomPath());
                 }}
             >
                 Show path
@@ -180,4 +168,3 @@ function PathSelection({ setSelectedPoints, generateMainPathPoints, setSelectedP
         </>
     );
 }
-

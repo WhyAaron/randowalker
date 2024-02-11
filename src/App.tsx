@@ -1,9 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer } from "react-leaflet";
-import {
-    extractNodesAndWays,
-    extractSegmentsAndPoints,
-} from "./util/parser.ts";
+import { extractNodesAndWays, extractSegmentsAndPoints } from "./util/parser.ts";
 import { Graph, Node, NodeMap } from "./util/types.ts";
 import * as turf from "@turf/turf";
 import { Feature, FeatureCollection, Point } from "geojson";
@@ -23,42 +20,28 @@ function App() {
     console.log("render");
 
     const [connectedNodes, setConnectedNodes] = useState<number[] | null>(null);
-    const [selectedPointsFull, setSelectedPointsFull] = useState<number[][]>(
-        []
-    );
-    const controlState = useSelector(
-        (state: RootState) => state.controls.controlState
-    );
-    const areaPosition = useSelector((state: RootState) => state.mapData.areaPosition)
+    const [selectedPointsFull, setSelectedPointsFull] = useState<number[][]>([]);
+    const controlState = useSelector((state: RootState) => state.controls.controlState);
+    const areaPosition = useSelector((state: RootState) => state.mapData.areaPosition);
     const startNode = useSelector((state: RootState) => state.mapData.startNode);
     const areaRadius = useSelector((state: RootState) => state.mapData.areaRadius);
-    const { data, error } = useFetch(
-        areaPosition,
-        areaRadius,
-        controlState
-    );
-    const { graph, buildGraph, findConnectedMarkers, findPathAstar } =
-        useGraph();
+    const { data, error } = useFetch(areaPosition, areaRadius, controlState);
+    const { graph, buildGraph, findConnectedMarkers, findPathAstar } = useGraph();
 
     const { nodes, ways } = useMemo(() => extractNodesAndWays(data), [data]);
     const { segments } = useMemo(() => extractSegmentsAndPoints(ways), [ways]);
     const centerOfMass = useMemo(
         () => getCenterOfMass(connectedNodes, nodes),
-        [connectedNodes, nodes]
+        [connectedNodes, nodes],
     );
     const quadrants = useMemo(() => generateQuadrants(), [connectedNodes]);
 
     //
     const [selectedPoints, setSelectedPoints] = useState<number[][]>([]);
-    function getCenterOfMass(
-        nodes: number[] | null,
-        nodeMap: NodeMap
-    ): Feature<Point> | null {
+    function getCenterOfMass(nodes: number[] | null, nodeMap: NodeMap): Feature<Point> | null {
         if (nodes === null || nodeMap === null) return null;
         const nodeCollection: FeatureCollection<Point> = turf.featureCollection(
-            nodes.map((node) =>
-                turf.point([nodeMap[node].lon, nodeMap[node].lat])
-            )
+            nodes.map((node) => turf.point([nodeMap[node].lon, nodeMap[node].lat])),
         );
         return turf.centerOfMass(nodeCollection);
     }
@@ -74,10 +57,7 @@ function App() {
         ];
 
         if (startNode && connectedNodes) {
-            const nodePosition = determineNodePosition(
-                nodes[startNode],
-                centerOfMass
-            );
+            const nodePosition = determineNodePosition(nodes[startNode], centerOfMass);
 
             switch (nodePosition) {
                 case "topLeft":
@@ -104,13 +84,7 @@ function App() {
         const isTop = node.lat < center.geometry.coordinates[1];
         const isLeft = node.lon < center.geometry.coordinates[0];
 
-        return isTop
-            ? isLeft
-                ? "topLeft"
-                : "topRight"
-            : isLeft
-                ? "bottomLeft"
-                : "bottomRight";
+        return isTop ? (isLeft ? "topLeft" : "topRight") : isLeft ? "bottomLeft" : "bottomRight";
     }
 
     function getNodeCoordinates(nodeId: number): number[] {
@@ -129,16 +103,12 @@ function App() {
                     point[2],
                     mainPathPoints[index + 1][2],
                     visitedNodes,
-                    nodes
+                    nodes,
                 );
                 if (path) {
                     path.forEach((nodeId, index) => {
                         visitedNodes.push(nodeId);
-                        pathPoints.push([
-                            nodes[nodeId].lat,
-                            nodes[nodeId].lon,
-                            nodeId,
-                        ]);
+                        pathPoints.push([nodes[nodeId].lat, nodes[nodeId].lon, nodeId]);
                         if (index !== 0) {
                             if (!visitedEdges[nodeId]) {
                                 visitedEdges[nodeId] = [];
@@ -168,10 +138,7 @@ function App() {
         if (connectedNodes === null || centerOfMass === null) return quadrants;
 
         connectedNodes.forEach((nodeId) => {
-            const nodePosition = determineNodePosition(
-                nodes[nodeId],
-                centerOfMass
-            );
+            const nodePosition = determineNodePosition(nodes[nodeId], centerOfMass);
 
             switch (nodePosition) {
                 case "topLeft":
@@ -222,9 +189,7 @@ function App() {
                     generateRandomPath={generateRandomPath}
                 />
 
-                <div className="flex flex-1 items-center justify-center row-span-1">
-                    Footer
-                </div>
+                <div className="flex flex-1 items-center justify-center row-span-1">Footer</div>
             </div>
             <div className="w-full h-full col-span-4 z-0">
                 <MapContainer
@@ -237,25 +202,11 @@ function App() {
                         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <FullPath
-                        points={nodes}
-                        selectedNodes={selectedPointsFull}
-                    />
-                    <AreaMarker
-                        startingPosition={null}
-                        active={controlState === "areaSelection"}
-                    />
+                    <FullPath points={nodes} selectedNodes={selectedPointsFull} />
+                    <AreaMarker startingPosition={null} active={controlState === "areaSelection"} />
                     {<Segments segments={segments} points={nodes} />}
-                    {!graph && (
-                        <Nodes
-                            segments={segments}
-                            nodes={nodes}
-                        />
-                    )}
-                    <ConnectedNodes
-                        nodes={nodes}
-                        connectedNodes={connectedNodes}
-                    />
+                    {!graph && <Nodes segments={segments} nodes={nodes} />}
+                    <ConnectedNodes nodes={nodes} connectedNodes={connectedNodes} />
                 </MapContainer>
             </div>
         </div>

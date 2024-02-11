@@ -2,15 +2,15 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { LatLngTuple } from "leaflet";
 
 export interface MapDataState {
-    areaPosition: LatLngTuple | null,
-    areaRadius: number,
-    startNode: number | null,
+    areaPosition: LatLngTuple | null;
+    areaRadius: number;
+    startNode: number | null;
 }
 const initialState: MapDataState = {
     areaPosition: null,
     areaRadius: 1000,
     startNode: null,
-}
+};
 
 export const mapDataSlice = createSlice({
     name: "mapData",
@@ -24,9 +24,9 @@ export const mapDataSlice = createSlice({
         },
         setStartNode: (state, action: PayloadAction<number>) => {
             state.startNode = action.payload;
-        }
-    }
-})
+        },
+    },
+});
 
 export const { setAreaPosition, setAreaRadius, setStartNode } = mapDataSlice.actions;
 

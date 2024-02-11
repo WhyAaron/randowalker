@@ -1,27 +1,27 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export interface ControlsState {
-    controlState: 'areaSelection' | 'startSelection' | 'pathSelection',
+    controlState: "areaSelection" | "startSelection" | "pathSelection";
 }
 const initialState: ControlsState = {
-    controlState: 'areaSelection'
-}
+    controlState: "areaSelection",
+};
 
 export const controlsSlice = createSlice({
     name: "controls",
     initialState,
     reducers: {
         setAreaSelection: (state) => {
-            state.controlState = 'areaSelection'
+            state.controlState = "areaSelection";
         },
         setStartSelection: (state) => {
-            state.controlState = 'startSelection'
+            state.controlState = "startSelection";
         },
         setPathSelection: (state) => {
-            state.controlState = 'pathSelection'
+            state.controlState = "pathSelection";
         },
-    }
-})
+    },
+});
 
 export const { setAreaSelection, setStartSelection, setPathSelection } = controlsSlice.actions;
 

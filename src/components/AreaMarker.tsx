@@ -10,15 +10,10 @@ interface AreaMarkerProps {
     active: boolean;
 }
 
-const AreaMarker: React.FC<AreaMarkerProps> = ({
-    startingPosition,
-    active,
-}) => {
+const AreaMarker: React.FC<AreaMarkerProps> = ({ startingPosition, active }) => {
     const [position, setPosition] = useState<LatLng | null>(startingPosition);
     const dispatch = useDispatch<AppDispatch>();
-    const areaRadius = useSelector(
-        (state: RootState) => state.mapData.areaRadius
-    );
+    const areaRadius = useSelector((state: RootState) => state.mapData.areaRadius);
 
     useMapEvents({
         click(e) {
@@ -30,9 +25,7 @@ const AreaMarker: React.FC<AreaMarkerProps> = ({
         },
     });
 
-    return position === null ? null : (
-        <Circle center={position} radius={areaRadius} />
-    );
+    return position === null ? null : <Circle center={position} radius={areaRadius} />;
 };
 
 export default AreaMarker;
