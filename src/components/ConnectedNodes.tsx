@@ -16,6 +16,10 @@ const ConnectedNodes: React.FC<NodesProps> = ({ nodes, connectedNodes }) => {
     segmentNodes[nodeID] = [nodes[nodeID].lat, nodes[nodeID].lon];
   });
 
+  const handleCircleClick = (nodeId: string, latLng: LatLngExpression) => {
+    console.log(`Circle clicked: ${nodeId}, ${latLng}`);
+  };
+
   return (
     <>
       {Object.entries(segmentNodes).map(([nodeId, latLng]) => (
@@ -25,6 +29,9 @@ const ConnectedNodes: React.FC<NodesProps> = ({ nodes, connectedNodes }) => {
           center={latLng}
           radius={10}
           pathOptions={{ color: "#18181b" }}
+          eventHandlers={{
+            click: () => handleCircleClick(nodeId, latLng),
+          }}
         />
       ))}
     </>
