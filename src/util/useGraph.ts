@@ -1,8 +1,7 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Graph, NodeMap, WayMap, Node } from "./types";
 const useGraph = () => {
     const [graph, setGraph] = useState<Graph | null>(null);
-    const visitedPath = useRef<number[]>([]);
 
     function addEdge(nodeA: number, nodeB: number, graph: Graph) {
         if (!graph[nodeA]) {
