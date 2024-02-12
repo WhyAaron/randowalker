@@ -1,7 +1,6 @@
 import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer } from "react-leaflet";
 import { Graph } from "./util/types.ts";
-import { useState } from "react";
 import AreaMarker from "./components/AreaMarker.tsx";
 import Segments from "./components/Segments.tsx";
 import Nodes from "./components/Nodes.tsx";
@@ -13,24 +12,15 @@ import { useSelector } from "react-redux";
 import { RootState } from "./util/store/store.ts";
 
 function App() {
-    console.log("render");
-
-    const [selectedPointsFull, setSelectedPointsFull] = useState<number[][]>([]);
     const controlState = useSelector((state: RootState) => state.controls.controlState);
+    const nodes = useSelector((state: RootState) => state.mapData.nodes);
+    const segments = useSelector((state: RootState) => state.mapData.segments);
+    const connectedNodes = useSelector((state: RootState) => state.mapData.connectedNodes)
+    const fullPath = useSelector((state: RootState) => state.mapData.fullPath);
 
     const { graph, buildGraph, findConnectedMarkers, findPathAstar } = useGraph();
 
-    const nodes = useSelector((state: RootState) => state.mapData.nodes);
-
-    const segments = useSelector((state: RootState) => state.mapData.segments);
-    const connectedNodes = useSelector((state: RootState) => state.mapData.connectedNodes)
-
-
-    const [selectedPoints, setSelectedPoints] = useState<number[][]>([]);
-
-
-
-    function generateRandomPath(): number[][] {
+    function generateRandomPath(selectedPoints: number[][]): number[][] {
         const mainPathPoints = selectedPoints;
         const visitedEdges: Graph = {};
         const pathPoints: number[][] = [];
@@ -82,8 +72,6 @@ function App() {
                 <Controls
                     buildGraph={buildGraph}
                     findConnectedMarkers={findConnectedMarkers}
-                    setSelectedPoints={setSelectedPoints}
-                    setSelectedPointsFull={setSelectedPointsFull}
                     generateRandomPath={generateRandomPath}
                 />
 
@@ -100,7 +88,7 @@ function App() {
                         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <FullPath points={nodes} selectedNodes={selectedPointsFull} />
+                    <FullPath points={nodes} fullPath={fullPath} />
                     <AreaMarker startingPosition={null} active={controlState === "areaSelection"} />
                     {<Segments segments={segments} points={nodes} />}
                     {!graph && <Nodes segments={segments} nodes={nodes} />}

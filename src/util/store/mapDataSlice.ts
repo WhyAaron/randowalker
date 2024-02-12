@@ -59,6 +59,8 @@ export interface MapDataState {
     centerOfMass: Feature<Point, GeoJsonProperties> | null;
     quadrants: Record<string, number[][]>;
     connectedNodes: number[];
+    selectedPoints: number[][];
+    fullPath: number[][];
 }
 
 const initialState: MapDataState = {
@@ -71,6 +73,8 @@ const initialState: MapDataState = {
     centerOfMass: null,
     quadrants: {},
     connectedNodes: [],
+    selectedPoints: [],
+    fullPath: [],
 };
 
 export const mapDataSlice = createSlice({
@@ -98,6 +102,12 @@ export const mapDataSlice = createSlice({
         setQuadrants: (state, action: PayloadAction<Record<string, number[][]>>) => {
             state.quadrants = action.payload;
         },
+        setSelectedPoints: (state, action: PayloadAction<number[][]>) => {
+            state.selectedPoints = action.payload;
+        },
+        setFullPath: (state, action: PayloadAction<number[][]>) => {
+            state.fullPath = action.payload;
+        },
     },
     extraReducers(builder) {
         builder.addCase(fetchData.fulfilled, (state, action) => {
@@ -118,6 +128,8 @@ export const {
     setConnectedNodes,
     setCenterOfMass,
     setQuadrants,
+    setSelectedPoints,
+    setFullPath,
 } = mapDataSlice.actions;
 
 export default mapDataSlice.reducer;

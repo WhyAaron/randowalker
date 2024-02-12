@@ -1,24 +1,19 @@
 import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../util/store/store";
 import { useDispatch } from "react-redux";
-import { setAreaRadius, fetchData, setConnectedNodes, recalculateMapFeatures } from "../util/store/mapDataSlice";
+import { setAreaRadius, fetchData, setConnectedNodes, recalculateMapFeatures, setSelectedPoints, setFullPath } from "../util/store/mapDataSlice";
 import { setPathSelection, setStartSelection } from "../util/store/controlSlice";
-import { WayMap } from "../util/types";
 import { generateMainPathPoints } from "../util/helpers";
 
 interface ControlsProps {
     buildGraph: (segments: any) => any;
     findConnectedMarkers: (node: number, graph: any) => number[];
-    setSelectedPoints: (points: any) => void;
-    setSelectedPointsFull: (points: any) => void;
-    generateRandomPath: () => any;
+    generateRandomPath: (selectedPoints: number[][]) => any;
 }
 
 export default function Controls({
     buildGraph,
     findConnectedMarkers,
-    setSelectedPoints,
-    setSelectedPointsFull,
     generateRandomPath,
 }: ControlsProps) {
     const controlState = useSelector((state: RootState) => state.controls.controlState);
@@ -33,8 +28,6 @@ export default function Controls({
         ),
         pathSelection: (
             <PathSelection
-                setSelectedPoints={setSelectedPoints}
-                setSelectedPointsFull={setSelectedPointsFull}
                 generateRandomPath={generateRandomPath}
             />
         ),
@@ -126,14 +119,10 @@ function StartSelection({
 }
 
 interface PathSelectionProps {
-    setSelectedPoints: (points: any) => void;
-    setSelectedPointsFull: (points: any) => void;
-    generateRandomPath: () => any;
+    generateRandomPath: (selectedPoints: number[][]) => any;
 }
 
 function PathSelection({
-    setSelectedPoints,
-    setSelectedPointsFull,
     generateRandomPath,
 }: PathSelectionProps) {
     const centerOfMass = useSelector((state: RootState) => state.mapData.centerOfMass);
@@ -141,23 +130,18 @@ function PathSelection({
     const nodes = useSelector((state: RootState) => state.mapData.nodes);
     const startNode = useSelector((state: RootState) => state.mapData.startNode);
     const connectedNodes = useSelector((state: RootState) => state.mapData.connectedNodes);
+    const dispatch = useDispatch<AppDispatch>();
     return (
         <>
             <button
                 className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
                 onClick={() => {
-                    setSelectedPoints(generateMainPathPoints(centerOfMass, quadrants, nodes, startNode, connectedNodes));
+                    const selectedPoints = generateMainPathPoints(centerOfMass, quadrants, nodes, startNode, connectedNodes);
+                    dispatch(setSelectedPoints(selectedPoints));
+                    dispatch(setFullPath(generateRandomPath(selectedPoints)));
                 }}
             >
                 Generate path
-            </button>
-            <button
-                className="bg-blue-700 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded m-4"
-                onClick={() => {
-                    setSelectedPointsFull(generateRandomPath());
-                }}
-            >
-                Show path
             </button>
         </>
     );
