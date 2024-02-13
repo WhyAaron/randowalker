@@ -10,13 +10,13 @@ import FullPath from "./components/FullPath.tsx";
 import Controls from "./components/Controls.tsx";
 import { useSelector } from "react-redux";
 import { RootState } from "./util/store/store.ts";
+import PathInfo from "./components/PathInfo.tsx";
 
 function App() {
     const controlState = useSelector((state: RootState) => state.controls.controlState);
     const nodes = useSelector((state: RootState) => state.mapData.nodes);
     const segments = useSelector((state: RootState) => state.mapData.segments);
     const connectedNodes = useSelector((state: RootState) => state.mapData.connectedNodes)
-    const fullPath = useSelector((state: RootState) => state.mapData.fullPath);
 
     const { graph, buildGraph, findConnectedMarkers, findPathAstar } = useGraph();
 
@@ -77,18 +77,19 @@ function App() {
 
                 <div className="flex flex-1 items-center justify-center row-span-1">Footer</div>
             </div>
-            <div className="w-full h-full col-span-4 z-0">
+            <div className="w-full h-full col-span-4 z-0 relative">
+                <PathInfo />
                 <MapContainer
                     center={[49.388938, 11.3694008]}
                     zoom={8}
                     scrollWheelZoom={true}
-                    style={{ height: "100%", width: "100%" }}
+                    style={{ height: "100%", width: "100%", zIndex: 0 }}
                 >
                     <TileLayer
                         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <FullPath points={nodes} fullPath={fullPath} />
+                    <FullPath />
                     <AreaMarker startingPosition={null} active={controlState === "areaSelection"} />
                     {<Segments segments={segments} points={nodes} />}
                     {!graph && <Nodes segments={segments} nodes={nodes} />}

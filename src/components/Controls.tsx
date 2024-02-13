@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../util/store/store";
 import { useDispatch } from "react-redux";
-import { setAreaRadius, fetchData, setConnectedNodes, recalculateMapFeatures, setSelectedPoints, setFullPath } from "../util/store/mapDataSlice";
+import { setAreaRadius, fetchData, setConnectedNodes, recalculateMapFeatures, setSelectedPoints, setCompletedPathSegments, createCompletePath } from "../util/store/mapDataSlice";
 import { setPathSelection, setStartSelection } from "../util/store/controlSlice";
 import { generateMainPathPoints } from "../util/helpers";
 
@@ -138,7 +138,8 @@ function PathSelection({
                 onClick={() => {
                     const selectedPoints = generateMainPathPoints(centerOfMass, quadrants, nodes, startNode, connectedNodes);
                     dispatch(setSelectedPoints(selectedPoints));
-                    dispatch(setFullPath(generateRandomPath(selectedPoints)));
+                    dispatch(setCompletedPathSegments(generateRandomPath(selectedPoints)));
+                    dispatch(createCompletePath());
                 }}
             >
                 Generate path

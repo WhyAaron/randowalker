@@ -5,6 +5,7 @@ import { WayMap, NodeMap } from "../types";
 import { Feature, Point, GeoJsonProperties } from "geojson";
 import { extractNodesAndWays, extractSegmentsAndPoints } from "../parser";
 import { getCenterOfMass, generateQuadrants } from "../helpers";
+import * as turf from "@turf/turf";
 
 export const fetchData = createAsyncThunk("mapData/fetchData", async (_, { getState }) => {
     const position = (getState() as RootState).mapData.areaPosition;
@@ -49,6 +50,27 @@ export const recalculateMapFeatures = () => (dispatch: AppDispatch, getState: ()
     dispatch(setQuadrants(quadrants));
 };
 
+export const createCompletePath = () => (dispatch: AppDispatch, getState: () => RootState) => {
+    const fullPath = getState().mapData.completedPathSegments;
+    const nodes = getState().mapData.nodes;
+    if (fullPath) {
+        const completePath: number[][] = [];
+        fullPath.forEach((nodeIds, index) => {
+            if (index === fullPath.length - 1) return null;
+            const start = nodeIds[2];
+            const end = fullPath[index + 1] ? fullPath[index + 1][2] : fullPath[0][2];
+            completePath.push([nodes[start].lat, nodes[start].lon]);
+            completePath.push([nodes[end].lat, nodes[end].lon]);
+        });
+        if (completePath.length > 0) {
+            const line = turf.lineString(completePath);
+            const length = turf.length(line, { units: "kilometers" });
+            dispatch(setLength(length));
+            dispatch(setCompletedPath(completePath));
+        }
+    }
+};
+
 export interface MapDataState {
     areaPosition: LatLngTuple | null;
     areaRadius: number;
@@ -60,7 +82,9 @@ export interface MapDataState {
     quadrants: Record<string, number[][]>;
     connectedNodes: number[];
     selectedPoints: number[][];
-    fullPath: number[][];
+    completedPathSegments: number[][];
+    completedPath: number[][];
+    length: number | null;
 }
 
 const initialState: MapDataState = {
@@ -74,7 +98,9 @@ const initialState: MapDataState = {
     quadrants: {},
     connectedNodes: [],
     selectedPoints: [],
-    fullPath: [],
+    completedPathSegments: [],
+    completedPath: [],
+    length: null,
 };
 
 export const mapDataSlice = createSlice({
@@ -105,8 +131,14 @@ export const mapDataSlice = createSlice({
         setSelectedPoints: (state, action: PayloadAction<number[][]>) => {
             state.selectedPoints = action.payload;
         },
-        setFullPath: (state, action: PayloadAction<number[][]>) => {
-            state.fullPath = action.payload;
+        setCompletedPathSegments: (state, action: PayloadAction<number[][]>) => {
+            state.completedPathSegments = action.payload;
+        },
+        setLength: (state, action: PayloadAction<number>) => {
+            state.length = action.payload;
+        },
+        setCompletedPath: (state, action: PayloadAction<number[][]>) => {
+            state.completedPath = action.payload;
         },
     },
     extraReducers(builder) {
@@ -129,7 +161,9 @@ export const {
     setCenterOfMass,
     setQuadrants,
     setSelectedPoints,
-    setFullPath,
+    setCompletedPathSegments,
+    setLength,
+    setCompletedPath,
 } = mapDataSlice.actions;
 
 export default mapDataSlice.reducer;
